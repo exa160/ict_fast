@@ -1,5 +1,6 @@
 import base64
 import hashlib
+from inspect import trace
 import os
 import traceback
 
@@ -13,6 +14,7 @@ from gui_config import QTabWidget, cur_path
 from gui_subtable import tab_data, buttonLayoutGen, tabLayoutGenerate, tabLayoutGenerate_2, tabLayoutGenerate_3
 from gui_subtable_multi import tabLayoutGenerate_4, tabLayoutGenerate_5
 from gui_data_check import is_must_check, check_all
+from logger import logger
 
 
 class UiForm(QtWidgets.QWidget):
@@ -101,7 +103,10 @@ class UiForm(QtWidgets.QWidget):
             # self.tabWidget.setCurrentIndex(0)
             QtCore.QMetaObject.connectSlotsByName(main_form)
         except Exception as e:
-            print(e)
+            logger.error(e)
+            logger.error(traceback.format_exc())
+            traceback.print_exc(file=open('err_log.log','w+'))
+            # traceback.format_exception
 
     def tab_prov(self):
         tab_index = self.tabWidget.currentIndex()
@@ -158,8 +163,9 @@ class UiForm(QtWidgets.QWidget):
                                                      horizontal=Side(style='thin', color='FF000000'))
                 writer.save()
             except Exception as e:
-                print(e)
-                traceback.print_exc()
+                logger.error(e)
+                logger.error(traceback.format_exc())
+                traceback.print_exc(file=open('err_log.log','w+'))
         # tab_data.save()
         # pd.ExcelFile
 

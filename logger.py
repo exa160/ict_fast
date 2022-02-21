@@ -17,21 +17,24 @@ def logger_init(debug):
     """
     if debug:
         log_flag = logging.DEBUG
+        cur_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+        log_path = os.path.join(cur_path, 'log', '{}.log'.format(get_time()))
+        os.makedirs(os.path.join(cur_path, 'log'), exist_ok=True)
     else:
         log_flag = logging.INFO
-    # cur_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-    # log_path = os.path.join(cur_path, 'log', '{}.log'.format(get_time()))
-    # os.makedirs(os.path.join(cur_path, 'log'), exist_ok=True)
+
+
 
     _logger = logging.getLogger(__name__)
 
     _logger.setLevel(level=log_flag)
-    # handler = logging.FileHandler(log_path)
-    # handler.setLevel(log_flag)
     formatter = logging.Formatter('%(asctime)s.%(msecs)03d-[%(levelname)s]-[%(filename)s:%(lineno)d]: %(message)s',
-                                  datefmt='%Y-%m-%d_%H:%M:%S')
-    # handler.setFormatter(formatter)
-    # _logger.addHandler(handler)
+                                datefmt='%Y-%m-%d_%H:%M:%S')
+    if debug:
+        handler = logging.FileHandler(log_path)
+        handler.setLevel(log_flag)
+        handler.setFormatter(formatter)
+        _logger.addHandler(handler)
 
     console = logging.StreamHandler()
     console.setFormatter(formatter)
@@ -39,3 +42,5 @@ def logger_init(debug):
     _logger.addHandler(console)
 
     return _logger
+
+logger = logger_init(False)
