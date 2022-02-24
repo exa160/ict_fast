@@ -1,4 +1,6 @@
-import pandas as pd
+import re
+from copy import copy
+
 from PyQt5 import QtCore, QtWidgets
 
 
@@ -66,7 +68,7 @@ def is_must_check(tab_data, in_dict: dict, text_label_dict: dict, is_disable=Fal
         # print(labal_val)
     else:
         if '*' in labal_name:
-            if labal_val == '':
+            if labal_val == '' or labal_val == '元' or ('签约期' in labal_name and labal_val in ('年', '季度', '月')):
                 set_msg(msg_label, '必填项未填写')
 
             elif '必填项未填写' in msg_value:
@@ -78,6 +80,10 @@ def is_must_check(tab_data, in_dict: dict, text_label_dict: dict, is_disable=Fal
                 else:
                     set_msg(msg_label, '')
 
+    if '项目名称' in labal_name:
+        re_rule = r"[\/\\\:\*\?\"\<\>\|]"  # '/ \ : * ? " < > |'
+        labal_val = re.sub(re_rule, "_", labal_val.replace('\n', ''))  # 替换为下划线
+
     val_dict.update({labal_name.strip('*'): [labal_val, msg_value]})
     rec_dict.update({obj_name: val_dict})
     # tab_data.save()  # 历史记录
@@ -85,7 +91,7 @@ def is_must_check(tab_data, in_dict: dict, text_label_dict: dict, is_disable=Fal
     # print(rec_dict)
 
 
-def number_clear(s:str):
+def number_clear(s: str):
     o = ''
     for index, c in enumerate(s):
         if index == 0:
@@ -115,8 +121,10 @@ def ct_calc(is_able_label, tab_data, in_dict, msg_dict):
     msg_label = msg_dict.get(obj_name).get(data_key)
     # msg_value = msg_label.text()
 
-    ct_cb = val_dict.get('CT成本', [False])[0]
-    ct_sr = val_dict.get('CT收入', [False])[0]
+    ct_cb_c = val_dict.get('CT成本', [False])[0]
+    ct_sr_c = val_dict.get('CT收入', [False])[0]
+    ct_cb = copy(ct_cb_c)
+    ct_sr = copy(ct_sr_c)
 
     if not ct_cb or not ct_sr:
         ct_msg = ''
@@ -125,7 +133,7 @@ def ct_calc(is_able_label, tab_data, in_dict, msg_dict):
         ct_cb = number_clear(ct_cb)
         ct_sr = number_clear(ct_sr)
         try:
-            compare = float(ct_cb.strip('元')) <= float(ct_sr.strip('元'))
+            compare = float(ct_cb) <= float(ct_sr)
         except Exception as e:
             print(e)
             compare = False
@@ -135,8 +143,8 @@ def ct_calc(is_able_label, tab_data, in_dict, msg_dict):
         else:
             ct_msg = '否'
             ct_msg_2 = 'CT建设不符合要求，该项目无法上会'
-        val_dict.update({'CT成本': ['{}元'.format(ct_cb.strip('元')), '']})
-        val_dict.update({'CT收入': ['{}元'.format(ct_sr.strip('元')), '']})
+        val_dict.update({'CT成本': [ct_cb_c, '']})
+        val_dict.update({'CT收入': [ct_sr_c, '']})
 
     if msg_label is not None or ct_msg_2 != '':
         is_able_label[-1].setText(ct_msg)
@@ -164,7 +172,7 @@ def ct_check(btn, tab_data, label_list, msg_dict):
     rec_dict = tab_data.data['rec_info']
     val_dict = rec_dict.get(obj_name, {})
 
-    if checked_btn.text() == '是':
+    if data_val == '是':
         for i in label_list:
             i.setDisabled(False)
             # i.in_signal.connect(lambda in_dict: is_must_check(tab_data, in_dict, msg_dict))
@@ -218,9 +226,9 @@ def per_calc(pay_dict, tab_data, obj_name, t_msg_dict):
     msg_value = msg_label.text()
     msg_value_2 = ''
 
-    it_all = pay_dict.get('IT总投入*', False).text()
-    it_tetention = pay_dict.get('质保金*', False).text()
-    it_repairs = pay_dict.get('维护费*', False).text()
+    it_all = pay_dict.get('IT总投入*', False).text().strip('元')
+    it_tetention = pay_dict.get('质保金*', False).text().strip('元')
+    it_repairs = pay_dict.get('维护费*', False).text().strip('元')
     # print(it_all, it_tetention, it_repairs)
     if not it_all or not it_repairs or not it_tetention:
         it_repairs_persent = ''
@@ -247,6 +255,7 @@ def per_calc(pay_dict, tab_data, obj_name, t_msg_dict):
             msg_value_2 = '本项目无维护无质保，建议该项目无需交维'
 
     if msg_value is not None and msg_value_2 != '':
+        # 得出结果后填入
         msg_label1.setText('{:.2%}'.format(it_repairs_persent))
         msg_label.setText(msg_value_2)
         val_dict.update({data_key.strip('*'): ['{:.2%}'.format(it_repairs_persent), msg_value_2]})
@@ -337,7 +346,7 @@ def check_all(tab_data):
                 data = [l1 + data[0], data[1]]
                 # 同单元格输出全部
                 if data[0] != '':
-                    d = ['{}、{}'.format(i+1, data[0][i]) for i in range(len(data[0]))]
+                    d = ['{}、{}'.format(i + 1, data[0][i]) for i in range(len(data[0]))]
                     data_list.append([index + 1, type_name, c_name, '\r\n'.join(d), ''])
                 # for d in data[0]:  # 分单元格操作
                 #     data_list.append([index + 1, type_name, c_name, d, ''])

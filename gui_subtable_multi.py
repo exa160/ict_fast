@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QCheckBox, QListWidgetItem
 
 from gui_config import QLineEdit, QComboBox, QListWidget, get_check_box, QPlainTextEdit, set_check_box, set_add_data
 from gui_data_check import four_box_check, is_must_check
-from gui_subtable import tab_config, tab_data, set_base_widget, set_border
+from gui_subtable import tab_config, tab_data, set_base_widget
 
 
 def tabLayoutGenerate_4(self, obj_name):
@@ -11,7 +11,7 @@ def tabLayoutGenerate_4(self, obj_name):
     tab4控件
     """
     input_list = []
-    is_able_label = []
+    # is_able_label = []
     msg_dict = {}
     # 创建tab中的布局
     tab_layout = QtWidgets.QGridLayout()
@@ -85,6 +85,9 @@ def tabLayoutGenerate_4(self, obj_name):
             type_wd = wd_list[0]
             type_msg = wd_list[1]
             tab_layout.addWidget(type_wd, index, 1)
+            tab_layout.setColumnStretch(0, 3)
+            tab_layout.setColumnStretch(1, 1)
+            tab_layout.setColumnStretch(2, 2)
             tab_layout.addWidget(type_msg, index, 2)
             msg_dict.update({type_name: type_msg})
             able_check_list.append([type_name] + wd_list)
@@ -127,6 +130,7 @@ def tabLayoutGenerate_5(self, obj_name):
     list_wd = QListWidget()
     list_msg = QListWidget()
     list_msg2 = QPlainTextEdit()
+    list_msg2.setPlaceholderText('在文本框中补充审核建议')
 
     project_dict = {}
 

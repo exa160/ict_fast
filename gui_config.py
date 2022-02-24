@@ -31,21 +31,21 @@ tab_config = {
              'data': ['市本级', '婺城', '金东', '义乌', '东阳', '永康', '武义', '浦江', '兰溪', '磐安']},
             {'name': '县市政企项目经理', 'is_must': True, 'type': 0, 'data': ''},
             {'name': '项目经理联系方式', 'is_must': True, 'type': 0, 'data': 'phone'},
-            {'name': '签约期', 'is_must': True, 'type': 0, 'data': ''},
+            {'name': '签约期', 'is_must': True, 'type': 30, 'data': '年/季度/月'},
             {'name': '客户服务等级', 'is_must': [True, True], 'type': 0, 'data': 'compare'},
         ],
         'CT成本确认': [
             {'name': '项目是否含CT', 'is_must': True, 'type': 3, 'data': ['是', '否']},
-            {'name': 'CT成本', 'is_must': True, 'type': 30, 'data': 'yuan'},
-            {'name': 'CT收入', 'is_must': True, 'type': 30, 'data': 'yuan'},
+            {'name': 'CT成本', 'is_must': True, 'type': 30, 'data': '元'},
+            {'name': 'CT收入', 'is_must': True, 'type': 30, 'data': '元'},
             {'name': 'CT成本签字人员', 'is_must': True, 'type': 0, 'data': ''},
             {'name': 'CT收入≥CT成本是否满足', 'is_must': False, 'type': 31, 'data': ''},
             {'name': '备注', 'is_must': False, 'type': 4, 'data': ''},
         ],
         '维护费信息': [
-            {'name': 'IT总投入', 'is_must': True, 'type': 30, 'data': 'yuan'},
-            {'name': '质保金', 'is_must': True, 'type': 30, 'data': 'yuan'},
-            {'name': '维护费', 'is_must': True, 'type': 30, 'data': 'yuan'},
+            {'name': 'IT总投入', 'is_must': True, 'type': 30, 'data': '元'},
+            {'name': '质保金', 'is_must': True, 'type': 30, 'data': '元'},
+            {'name': '维护费', 'is_must': True, 'type': 30, 'data': '元'},
             {'name': '维护费占比', 'is_must': False, 'type': 31, 'data': ''},
         ],
         '业主侧维护及考核要求': [
@@ -58,6 +58,7 @@ tab_config = {
                                                                                       '故障于12小时内解决',
                                                                                       '故障于18小时内解决',
                                                                                       '故障于24小时内解决',
+                                                                                      '故障于36小时内解决',
                                                                                       '故障于48小时内解决']]},
             {'name': '故障处理书面报告是否需要提供', 'is_must': [True, True], 'type': [1, 1], 'data': [['是', '否'],
                                                                                          ['1个工作日',
@@ -78,8 +79,10 @@ tab_config = {
                                                                                         '95%', '90%',
                                                                                         '85%', '80%'], []]},
             {'name': '备品备件需求是否明确', 'is_must': [True, True], 'type': [1, 0], 'data': [['是', '否'], '摄像头备件']},
-            {'name': '维护界面是否清晰', 'is_must': [True, True], 'type': [1, 0], 'data': [['是', '否'], '取电问题由客户负责，其他维护全部由乙方负责']},
-            {'name': '考核方式是否明确', 'is_must': [True, True], 'type': [1, 0], 'data': [['是', '否'], '每年12月底取数，在线率低于95%，每低于1个百分点，扣除本年底1/45的维护款']},
+            {'name': '维护界面是否清晰', 'is_must': [True, True], 'type': [1, 0],
+             'data': [['是', '否'], '取电问题由客户负责，其他维护全部由乙方负责']},
+            {'name': '考核方式是否明确', 'is_must': [True, True], 'type': [1, 0],
+             'data': [['是', '否'], '每年12月底取数，在线率低于95%，每低于1个百分点，扣除本年底1/45的维护款']},
             {'name': '补充说明', 'is_must': [False], 'type': [4], 'data': ['']},
         ],
         '项目类型': [{'name': '视频监控',
@@ -320,10 +323,52 @@ class QLineEdit(QtWidgets.QLineEdit):
         super(QLineEdit, self).__init__(parent)
         # self.setAttribute(QtCore.Qt.WA_MacShowFocusRect)
 
-    def focusOutEvent(self, e):
+    def send_signal(self):
         obj_name = self.parentWidget().objectName()
         self.in_signal.emit({obj_name: {self.objectName(): self.text()}})  # 发送信号
+
+    def focusOutEvent(self, e):
+        self.send_signal()
         return super(QLineEdit, self).focusOutEvent(e)
+
+
+class MultiTextEdit(QLineEdit):
+    def __init__(self, type_name, obj_name, wd_data):
+        super(MultiTextEdit, self).__init__()
+        # type_wd_l = QLineEdit()
+        # self.type_wd_l = type_wd_l
+        # self.textChanged = type_wd_l.textChanged
+        # self.in_signal = type_wd_l.in_signal
+        # self.setValidator = type_wd_l.setValidator
+        type_wd_l = self
+        type_wd_l.setObjectName(type_name)
+        # 输入框布局
+        type_wdl = QtWidgets.QHBoxLayout()
+        # type_wd = QtWidgets.QWidget(wd_layout)
+        # type_wdl.addStretch()
+        type_wdl.addWidget(type_wd_l)
+        # type_wdl.addStretch()
+        if '/' in wd_data:
+            self.unit_d = QComboBox()
+            self.unit_d.addItems(wd_data.split('/'))
+            self.unit_d.in_signal.connect(lambda: self.send_signal())
+        else:
+            self.unit_d = QtWidgets.QLabel(wd_data)
+        type_wdl.addWidget(self.unit_d)
+        type_wdl.addStretch()
+        type_wdl.setContentsMargins(0, 0, 0, 0)
+        # 创建控件并设置布局
+        type_wd = QtWidgets.QWidget()
+        type_wd.setObjectName(obj_name)
+        type_wd.setLayout(type_wdl)
+        type_wd.setFixedHeight(25)
+        type_wd.in_signal = self.in_signal
+        self.type_wd = type_wd
+
+    def text(self):
+        t = super(QLineEdit, self).text()
+        text = t + self.unit_d.text()
+        return text
 
 
 class QPlainTextEdit(QtWidgets.QPlainTextEdit):
@@ -481,13 +526,15 @@ def get_check_box(_tab_data, obj_name, list_msg, list_msg2, box_list, project_di
             box.setCheckState(0)
         box_list.append(box)
         label_list.append(label)
-        box.stateChanged.connect(lambda iw: get_check_box_2(tab_data, obj_name, '\r\n'.join(chooses), box_list, label_list))
+        box.stateChanged.connect(
+            lambda iw: get_check_box_2(tab_data, obj_name, '\r\n'.join(chooses), box_list, label_list))
 
     list_msg.itemClicked.connect(lambda: set_check_box(list_msg, box_list))
     list_msg2.in_signal.disconnect()
     list_msg2.in_signal.connect(lambda: set_add_data(tab_data, list_msg2, obj_name, '\r\n'.join(chooses)))
     _tab_data.data['rec_info'].update({obj_name: {}})
-    is_must_check(_tab_data, {obj_name: {'\r\n'.join(chooses): choose_save_list}}, {obj_name: {'\r\n'.join(chooses): list_msg2}})
+    is_must_check(_tab_data, {obj_name: {'\r\n'.join(chooses): choose_save_list}},
+                  {obj_name: {'\r\n'.join(chooses): list_msg2}})
 
 
 def set_check_box(list_msg, box_list):
@@ -525,7 +572,6 @@ def update_tab_data(_tab_data, obj_name, type_name, change_data, label_index=0):
     obj_data_dict = rec_info.get(obj_name, {})
     type_data_list = obj_data_dict.get(type_name.strip('*'), ['', ''])
     type_data_list[label_index] = change_data
-    obj_data_dict.update({type_name.strip('*'):type_data_list})
+    obj_data_dict.update({type_name.strip('*'): type_data_list})
     rec_info.update(obj_data_dict)
     # print(rec_info)
-
