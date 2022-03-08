@@ -4,6 +4,7 @@ import sys
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QSplashScreen, QMessageBox
+
 import gui_main
 from config import base_path
 
@@ -33,21 +34,26 @@ class QWidgetCl(QWidget):
 def password_UI():
     pwapp = QApplication(sys.argv)
     MainWindow = QWidget()
-    MainWindow.setWindowTitle("ICT预审表")
+    MainWindow.setWindowTitle("ICT预审表 v0.94")
     MainWindow.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint |
                               QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint)
     icon = QIcon()
     icon.addPixmap(QPixmap(os.path.join(base_path, 'img', 'ict-logo.ico')), QtGui.QIcon.Normal, QtGui.QIcon.Off)
     MainWindow.setWindowIcon(icon)
     pw = gui_main.pwdUI(MainWindow)
-    MainWindow.resize(500, 60)
+    w = pwapp.desktop().screenGeometry().width()
+    h = pwapp.desktop().screenGeometry().height()
+    MainWindow.resize(w//3.8, h//18)
     MainWindow.setFixedSize(MainWindow.width(), MainWindow.height())
     MainWindow.show()
+    # return 1
     return pwapp.exec()
 
 
 def main_exec(start_wait=True):
     app = QApplication(sys.argv)
+    w = app.desktop().screenGeometry().width()
+    h = app.desktop().screenGeometry().height()
     # import ctypes
     # ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("myappid")
     if start_wait:
@@ -63,7 +69,7 @@ def main_exec(start_wait=True):
     MainWindow.setWindowIcon(icon)
     # MainWindow.setFont(QtGui.QFont("ZYSong18030", 12))  # 全局字体
     # MainWindow.setWindowFlags(QtCore.Qt.WindowCloseButtonHint|QtCore.Qt.WindowMinimizeButtonHint|QtCore.Qt.WindowMaximizeButtonHint)
-    ui = gui_main.UiForm(MainWindow)
+    ui = gui_main.UiForm(MainWindow, w, h)
     ui.setupUi(MainWindow)
     MainWindow.show()
     if start_wait:

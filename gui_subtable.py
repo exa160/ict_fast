@@ -1,9 +1,10 @@
+import pandas as pd
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QRegExpValidator, QDoubleValidator
-from config import *
-import pandas as pd
 
-from gui_config import tab_config, QLineEdit, QComboBox, QLabel, tab_data, set_cale, update_tab_data, QPlainTextEdit
+from config import *
+from gui_config import tab_config, QLineEdit, QComboBox, QLabel, tab_data, set_cale, update_tab_data, QPlainTextEdit, \
+    MultiTextEdit
 from gui_data_check import ct_calc, ct_check, per_calc, is_must_check
 
 
@@ -170,6 +171,10 @@ def tabLayoutGenerate(self, obj_name):
             cale_wd.dateChanged.connect(lambda date: set_cale(tab_data, obj_name, cale_wd))
             type_msg = None
 
+        elif wd_type == 30:
+            type_wd_l = MultiTextEdit(type_name, obj_name, wd_data)
+            type_wd = type_wd_l.type_wd
+
         if wd_data == 'compare':
             type_wd.setPlaceholderText("请输入客户名称")
             file_path = os.path.join(cur_path, '客户服务等级.xls')
@@ -308,29 +313,17 @@ def tabLayoutGenerate_2(self, obj_name):
             tab_layout.addWidget(type_label, index, 0)  # i行 0列
             tab_layout.addWidget(type_wd, index, 1, 2, 2)
             continue
+
         elif wd_type == 30:
             # 创建输入框
-            type_wd_l = QLineEdit()
-            type_wd_l.setDisabled(True)
-            type_wd_l.setObjectName(type_name)
-            is_able_label.append(type_wd_l)
-            # 输入框布局
-            type_wdl = QtWidgets.QHBoxLayout()
-            # type_wd = QtWidgets.QWidget(wd_layout)
-            type_wdl.addWidget(type_wd_l)
-            type_wdl.addWidget(QtWidgets.QLabel('元'))
-            type_wdl.setContentsMargins(0, 0, 0, 0)
-            # 创建控件并设置布局
-            type_wd = QtWidgets.QWidget()
-            type_wd.setObjectName(obj_name)
-            type_wd.setLayout(type_wdl)
-
-            type_wd.setFixedWidth(200)
-            type_wd.setFixedHeight(25)
-
-            if wd_data == 'yuan':
+            m_edit = MultiTextEdit(type_name, obj_name, wd_data)
+            m_edit.setDisabled(True)
+            is_able_label.append(m_edit)
+            type_wd = m_edit.type_wd
+            if wd_data == '元':
                 double_validator = QDoubleValidator(0, 100000000000, 2)
-                type_wd_l.setValidator(double_validator)
+                double_validator.setNotation(QDoubleValidator.StandardNotation)
+                m_edit.setValidator(double_validator)
 
         elif wd_type == 31:
             type_wd = QLabel()
@@ -391,54 +384,30 @@ def tabLayoutGenerate_3(self, obj_name):
 
         elif wd_type == 30:
             # 创建输入框
-            type_wd_l = QLineEdit()
-            type_wd_l.setObjectName(type_name)
-            pay_dict.update({type_name: type_wd_l})
-            # 输入框布局
-            type_wdl = QtWidgets.QHBoxLayout()
-            # type_wd = QtWidgets.QWidget(wd_layout)
-            type_wdl.addWidget(type_wd_l)
-            type_wdl.addWidget(QtWidgets.QLabel('元'))
-            type_wdl.addStretch()
-            type_wdl.setContentsMargins(0, 0, 0, 0)
-            # 创建控件并设置布局
-            type_wd = QtWidgets.QWidget()
-            type_wd.setObjectName(obj_name)
-            type_wd.setLayout(type_wdl)
-            type_wd_l.textChanged.connect(lambda: per_calc(pay_dict, tab_data, obj_name, msg_dict))
-
-            type_wd_l.in_signal.connect(lambda in_dict: is_must_check(tab_data, in_dict, {obj_name: msg_dict}))
-            # type_wd.setFixedWidth(200)
-            type_wd.setFixedHeight(25)
-            if wd_data == 'yuan':
+            m_edit = MultiTextEdit(type_name, obj_name, wd_data)
+            pay_dict.update({type_name: m_edit})
+            m_edit.textChanged.connect(lambda: per_calc(pay_dict, tab_data, obj_name, msg_dict))
+            m_edit.in_signal.connect(lambda in_dict: is_must_check(tab_data, in_dict, {obj_name: msg_dict}))
+            type_wd = m_edit.type_wd
+            if wd_data == '元':
                 double_validator = QDoubleValidator(0, 100000000000, 2)
                 double_validator.setNotation(QDoubleValidator.StandardNotation)
-                type_wd_l.setValidator(double_validator)
+                m_edit.setValidator(double_validator)
 
         elif wd_type == 31:
             type_wd = QLabel()
             set_border(type_wd)
-            type_msg.setFixedHeight(55)
-            # type_wd.setDisabled(True)
+            type_msg.setFixedHeight(self.width//11)
             type_wd.setObjectName(type_name)
-            # is_able_label.append(type_wd)
+
             msg_dict.update({'{}1'.format(type_name): type_wd})
-            pay_dict.update({type_name.strip('*'): type_wd_l})
+            pay_dict.update({type_name.strip('*'): m_edit})
             type_msg.setWordWrap(True)  # 自动换行
 
         tab_layout.addWidget(type_label, index, 0)  # i行 0列
         tab_layout.addWidget(type_wd, index, 1)
         tab_layout.addWidget(type_msg, index, 2)
 
-        # input_list.append(type_wd)
         msg_dict.update({type_name: type_msg})
-
-    # for i in is_able_label:
-    #     i.in_signal.connect(lambda in_dict: per_calc(pay_dict, tab_data, in_dict, {obj_name: msg_dict}))
-    # if isinstance(i, QLabel):
-    #     continue
-    #     # i.in_signal.connect(lambda in_dict: per_calc(is_able_label, tab_data, in_dict, {obj_name: msg_dict}))
-    # else:
-    #     i.textChanged.connect(lambda curtext: per_calc(is_able_label, tab_data, {obj_name: {i: curtext}}, {obj_name: msg_dict}))
 
     return tab_layout, input_list, msg_dict

@@ -1,26 +1,30 @@
 import base64
 import hashlib
-from inspect import trace
 import os
 import traceback
 
-from PyQt5 import QtCore, QtWidgets
 import pandas as pd
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 from openpyxl.styles import Font, Side, Border, Alignment, PatternFill
 from openpyxl.utils import get_column_letter as n2a
 
 from gui_config import QTabWidget, cur_path
+from gui_data_check import is_must_check, check_all
 from gui_subtable import tab_data, buttonLayoutGen, tabLayoutGenerate, tabLayoutGenerate_2, tabLayoutGenerate_3
 from gui_subtable_multi import tabLayoutGenerate_4, tabLayoutGenerate_5
-from gui_data_check import is_must_check, check_all
 from logger import logger
 
 
 class UiForm(QtWidgets.QWidget):
 
-    def __init__(self, parent):
+    def __init__(self, parent, w, h):
         super(UiForm, self).__init__(parent)
+        self.main_form = None
+        self.height = None
+        self.width = None
+        self.w = w
+        self.h = h
         self.btn_reset = None
         self.btn_submit = None  # 提交按钮
         self.text_label_dict = {}  # 保存内容2的组件
@@ -36,9 +40,18 @@ class UiForm(QtWidgets.QWidget):
         self.tab_gen_func = [tabLayoutGenerate, tabLayoutGenerate_2, tabLayoutGenerate_3, tabLayoutGenerate_4,
                              tabLayoutGenerate_5, tabLayoutGenerate]
 
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.Resize:
+            self.width = self.main_form.width()
+            self.height = self.main_form.height()
+            return super().eventFilter(obj, event)
+
     def setupUi(self, main_form):
         main_form.setObjectName("Form")
         main_form.resize(860, 630)
+        self.main_form = main_form
+        self.width = main_form.width()
+        self.height = main_form.height()
         # main_form.setFixedSize(main_form.width(), main_form.height())
         # 设置全局布局
         self.gridLayout = QtWidgets.QGridLayout()
@@ -51,14 +64,15 @@ class UiForm(QtWidgets.QWidget):
         self.tabWidget.in_signal.connect(lambda: self.tabWidget.setFocus())
         self.gridLayout.addWidget(self.tabWidget)
 
-        self.tabWidget.resize(850, 770)
+
+        # self.tabWidget.resize(850, 770)
         self.tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
         self.tabWidget.setTabShape(QtWidgets.QTabWidget.Rounded)
         self.tabWidget.setObjectName("tabWidget")
 
         # 添加提示信息
         textWidget = QtWidgets.QTextBrowser()
-        textWidget.setFixedHeight(120)
+        textWidget.setFixedHeight(self.width//5)
         self.textWidget = textWidget
         self.gridLayout.addWidget(self.textWidget)
 
@@ -105,7 +119,7 @@ class UiForm(QtWidgets.QWidget):
         except Exception as e:
             logger.error(e)
             logger.error(traceback.format_exc())
-            traceback.print_exc(file=open('err_log.log','w+'))
+            traceback.print_exc(file=open('err_log.log', 'w+'))
             # traceback.format_exception
 
     def tab_prov(self):
@@ -141,12 +155,22 @@ class UiForm(QtWidgets.QWidget):
                 ws.merge_cells(merge_cell)
                 ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
                 ws['A1'].fill = PatternFill(fill_type='solid', fgColor="FFFF00")
+                ws['A1'].border = Border(left=Side(style='thin', color='FF000000'),
+                                         right=Side(style='thin', color='FF000000'),
+                                         top=Side(style='thin', color='FF000000'),
+                                         bottom=Side(style='thin', color='FF000000'),
+                                         diagonal=Side(style='thin', color='FF000000'),
+                                         diagonal_direction=0,
+                                         outline=Side(style='thin', color='FF000000'),
+                                         vertical=Side(style='thin', color='FF000000'),
+                                         horizontal=Side(style='thin', color='FF000000'))
                 ws['A1'].value = 'ICT项目方案预审表'
                 ws['A1'].font = Font(bold=True)
                 for index_r, row_data in enumerate(ws.rows):
                     for index, col_cell in enumerate(row_data):
                         if index_r == 0:
                             ws.column_dimensions[n2a(index + 1)].width = col_width[index]
+                            ws[f'{n2a(index + 1)}2'].fill = PatternFill(fill_type='solid', fgColor="FFFF00")
                         col_cell.font = Font(bold=False)
                         col_cell.alignment = Alignment(horizontal='center', vertical='center', wrapText=True)
                         #         print(col_cell.border)
@@ -163,9 +187,12 @@ class UiForm(QtWidgets.QWidget):
                                                      horizontal=Side(style='thin', color='FF000000'))
                 writer.save()
             except Exception as e:
+                if isinstance(e, PermissionError):
+                    self.textWidget.append('导出失败\r\n无访问权限，请检查Excel文件是否关闭后再次点击导出')
+                self.textWidget.append('错误日志详见err_log.log')
                 logger.error(e)
                 logger.error(traceback.format_exc())
-                traceback.print_exc(file=open('err_log.log','w+'))
+                traceback.print_exc(file=open('err_log.log', 'w+'))
         # tab_data.save()
         # pd.ExcelFile
 
@@ -184,7 +211,7 @@ class UiForm(QtWidgets.QWidget):
         :return:
         """
         _translate = QtCore.QCoreApplication.translate
-        main_form.setWindowTitle(_translate("Form", "ICT预审表 v0.862"))
+        main_form.setWindowTitle(_translate("Form", "ICT预审表"))
         for index, tab in enumerate(self.tab_list):
             self.tabWidget.setTabText(self.tabWidget.indexOf(tab),
                                       _translate(str(index), '{}.{}'.format(index + 1, self.tab_name_list[index])))
