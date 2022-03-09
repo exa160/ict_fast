@@ -211,7 +211,7 @@ class UiForm(QtWidgets.QWidget):
         :return:
         """
         _translate = QtCore.QCoreApplication.translate
-        main_form.setWindowTitle(_translate("Form", "ICT预审表 v0.862"))
+        main_form.setWindowTitle(_translate("Form", "ICT预审表"))
         for index, tab in enumerate(self.tab_list):
             self.tabWidget.setTabText(self.tabWidget.indexOf(tab),
                                       _translate(str(index), '{}.{}'.format(index + 1, self.tab_name_list[index])))

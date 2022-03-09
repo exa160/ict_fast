@@ -379,8 +379,15 @@ class QPlainTextEdit(QtWidgets.QPlainTextEdit):
     #             QStyleOptionViewItem.state = QStyleOptionViewItem.state ^ QtWidgets.QStyle.State_HasFocus
     #         super().paint(QPainter, QStyleOptionViewItem, QModelIndex)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, is_now=False):
         super(QPlainTextEdit, self).__init__(parent)
+        self.is_now = is_now
+
+    def textChanged(self) -> None:
+        if self.is_now:
+            obj_name = self.parentWidget().objectName()
+            self.in_signal.emit({obj_name: {self.objectName(): self.text()}})  # 发送信号
+        return super(QPlainTextEdit, self).textChanged()
 
     def text(self):
         return self.toPlainText()

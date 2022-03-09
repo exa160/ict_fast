@@ -34,7 +34,7 @@ class QWidgetCl(QWidget):
 def password_UI():
     pwapp = QApplication(sys.argv)
     MainWindow = QWidget()
-    MainWindow.setWindowTitle("ICT预审表")
+    MainWindow.setWindowTitle("ICT预审表 v0.94")
     MainWindow.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint |
                               QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint)
     icon = QIcon()
