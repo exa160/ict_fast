@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 
-block_cipher = None
+block_cipher = pyi_crypto.PyiBlockCipher(key='MzoqOiWNG999max1919')
 
 
 a = Analysis(['main.py'],
@@ -42,5 +42,6 @@ coll = COLLECT(exe,
                a.zipfiles,
                a.datas, 
                strip=False,
-               upx=False,
+               upx=True,
+               upx_exclude=['vcruntime140.dll'],
                name='ICT预审表')
