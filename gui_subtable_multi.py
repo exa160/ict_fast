@@ -150,7 +150,8 @@ def tabLayoutGenerate_5(self, obj_name):
         list_wd.addItem(item)  # 把QListWidgetItem加入QListWidget
         list_wd.setItemWidget(item, box)  # 再把QCheckBox加入Q
         box_list.append(box)
-        box.stateChanged.connect(lambda iw: get_check_box(tab_data, obj_name, list_msg, list_msg2, box_list, project_dict))
+        box.stateChanged.connect(
+            lambda iw: get_check_box(tab_data, obj_name, list_msg, list_msg2, box_list, project_dict))
     # list_wd.itemClicked.connect(lambda iw: getChoose(list_wd))
 
     msg_tab = QtWidgets.QTabWidget()
@@ -159,7 +160,7 @@ def tabLayoutGenerate_5(self, obj_name):
     msg_tab.addTab(list_msg2, '补充审核建议')
     list_wd.itemClicked.connect(lambda: set_check_box(list_wd, box_list))
     list_msg2.in_signal.connect(lambda: set_add_data(tab_data, list_msg2, obj_name, ''))
-    list_msg.itemClicked.connect(lambda l: print(l))
+    list_msg.itemClicked.connect(lambda l: print(l))  # 该语句不能注释
     tab_layout.addWidget(list_wd, 1, 0, 1, 1)
     tab_layout.addWidget(msg_tab, 0, 1, 2, 3)
     tab_layout.setColumnStretch(1, 3)  # 前后1：2

@@ -222,8 +222,8 @@ class pwdUI(QtWidgets.QWidget):
         super(pwdUI, self).__init__(parent)
 
         self.setObjectName('login')
-        self.resize(500, 60)
-        self.setFixedSize(self.width(), self.height())
+        # self.resize(w, h)
+        # self.setFixedSize(self.width(), self.height())
 
         # 输入密码框
         flo = QtWidgets.QHBoxLayout()
